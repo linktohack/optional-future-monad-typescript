@@ -35,4 +35,4 @@ Future
             console.log('reject', error);
         }
     });
-    ```
+```
