@@ -41,11 +41,22 @@ class Future<T> {
 
     constructor(public fn: (resolve: (value: T) => void, reject: (error: Error) => void) => void) {
         fn((value) => this.resolve(value), error => this.reject(error));
-        // fn(this.resolve, this.reject);
     }
 
-    static of<T>(fn: (resolve: (value: T) => void, reject: (error: Error) => void) => void) {
-        return new Future<T>(fn);
+    static resolve<T>(value: T) {
+        return new Future<T>((resolve, _) => {
+            setImmediate(() => {
+                resolve(value)
+            })
+        })
+    }
+
+    static reject<T>(error: Error) {
+        return new Future<T>((_, reject) => {
+            setImmediate(() => {
+                reject(error)
+            })
+        })
     }
 
     flatMap<V>(fn: (value: T) => Future<V>): Future<V> {
@@ -79,32 +90,21 @@ class Future<T> {
 Optional
     .of({ x: 5, y: 7 })
     .map(it => it.x)
-    .flatMap(x => new Optional<string>(undefined))
+    .flatMap(x => new Optional<string>('aa'))
     .match({
         some(x) { console.log('this is x', x) },
         none() { console.log('nothing'); }
     })
 
 Future
-    .of<number>((resolve, reject) => {
-        // setImmediate(() => {
-        //     resolve(5);
-        // })
-        setTimeout(() => {
-            resolve(5);
-            // reject(new Error('oops'))
-        }, 1000);
+    .resolve(5)
+    .map(it => {
+        return it + 1
     })
-    .map(it => it + 1)
-
     .flatMap<string>(it => {
-        return Future.of((resolve, reject) => {
-            setImmediate(() => {
-                // reject(new Error('what'));
-            })
+        return new Future((resolve, reject) => {
             setTimeout(() => {
-                // resolve(`${it} wwowowow`)
-                reject(new Error('oops'))
+                resolve(`${it} wwowowow`)
             }, 1000);
         })
     })

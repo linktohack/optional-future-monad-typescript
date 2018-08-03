@@ -36,10 +36,20 @@ var Future = /** @class */ (function () {
         this.resolve = function (value) { };
         this.reject = function (error) { };
         fn(function (value) { return _this.resolve(value); }, function (error) { return _this.reject(error); });
-        // fn(this.resolve, this.reject);
     }
-    Future.of = function (fn) {
-        return new Future(fn);
+    Future.resolve = function (value) {
+        return new Future(function (resolve, _) {
+            setImmediate(function () {
+                resolve(value);
+            });
+        });
+    };
+    Future.reject = function (error) {
+        return new Future(function (_, reject) {
+            setImmediate(function () {
+                reject(error);
+            });
+        });
     };
     Future.prototype.flatMap = function (fn) {
         var _this = this;
@@ -70,30 +80,20 @@ var Future = /** @class */ (function () {
 Optional
     .of({ x: 5, y: 7 })
     .map(function (it) { return it.x; })
-    .flatMap(function (x) { return new Optional(undefined); })
+    .flatMap(function (x) { return new Optional('aa'); })
     .match({
     some: function (x) { console.log('this is x', x); },
     none: function () { console.log('nothing'); }
 });
 Future
-    .of(function (resolve, reject) {
-    // setImmediate(() => {
-    //     resolve(5);
-    // })
-    setTimeout(function () {
-        resolve(5);
-        // reject(new Error('oops'))
-    }, 1000);
+    .resolve(5)
+    .map(function (it) {
+    return it + 1;
 })
-    .map(function (it) { return it + 1; })
     .flatMap(function (it) {
-    return Future.of(function (resolve, reject) {
-        setImmediate(function () {
-            // reject(new Error('what'));
-        });
+    return new Future(function (resolve, reject) {
         setTimeout(function () {
-            // resolve(`${it} wwowowow`)
-            reject(new Error('oops'));
+            resolve(it + " wwowowow");
         }, 1000);
     });
 })
