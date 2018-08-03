@@ -33,45 +33,37 @@ var Future = /** @class */ (function () {
     function Future(fn) {
         var _this = this;
         this.fn = fn;
-        this._resolve = function () { };
-        this.resolve = function (value) {
-            _this._resolve(value);
-        };
-        this._reject = function () { };
-        this.reject = function (error) {
-            _this._reject(error);
-        };
-        fn(this.resolve, this.reject);
+        this.resolve = function (value) { };
+        this.reject = function (error) { };
+        fn(function (value) { return _this.resolve(value); }, function (error) { return _this.reject(error); });
+        // fn(this.resolve, this.reject);
     }
     Future.of = function (fn) {
         return new Future(fn);
     };
     Future.prototype.flatMap = function (fn) {
         var _this = this;
-        return new Future(function (resolve1, reject1) {
-            _this._resolve = function (value) {
+        return new Future(function (resolve, reject) {
+            _this.resolve = function (value) {
                 fn(value)
-                    .match({
-                    resolve: function (value1) { resolve1(value1); },
-                    reject: function (error) { reject1(error); }
-                });
+                    .match({ resolve: resolve, reject: reject });
             };
-            _this._reject = reject1;
+            _this.reject = reject;
         });
     };
     Future.prototype.map = function (fn) {
         var _this = this;
-        return new Future(function (resolve1, reject1) {
-            _this._resolve = function (value) {
-                resolve1(fn(value));
+        return new Future(function (resolve, reject) {
+            _this.resolve = function (value) {
+                resolve(fn(value));
             };
-            _this._reject = reject1;
+            _this.reject = reject;
         });
     };
     Future.prototype.match = function (_a) {
         var resolve = _a.resolve, reject = _a.reject;
-        this._resolve = resolve;
-        this._reject = reject;
+        this.resolve = resolve;
+        this.reject = reject;
     };
     return Future;
 }());
@@ -85,13 +77,13 @@ Optional
 });
 Future
     .of(function (resolve, reject) {
-    setImmediate(function () {
-        resolve(5);
-    });
+    // setImmediate(() => {
+    //     resolve(5);
+    // })
     setTimeout(function () {
-        // resolve(5);
+        resolve(5);
         // reject(new Error('oops'))
-    }, 0);
+    }, 1000);
 })
     .map(function (it) { return it + 1; })
     .flatMap(function (it) {
@@ -100,7 +92,7 @@ Future
             // reject(new Error('what'));
         });
         setTimeout(function () {
-            // resolve(it + 2)
+            // resolve(`${it} wwowowow`)
             reject(new Error('oops'));
         }, 1000);
     });

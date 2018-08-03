@@ -36,42 +36,34 @@ class Optional<T>  {
 
 
 class Future<T> {
-    _resolve: (value: T) => void = () => { };
-    resolve: (value: T) => void = (value) => {
-        this._resolve(value);
-    };
-    _reject: (error: Error) => void = () => { };
-    reject: (error: Error) => void = (error) => {
-        this._reject(error);
-    };
+    resolve: (value: T) => void = (value) => { };
+    reject: (error: Error) => void = (error) => { };
 
     constructor(public fn: (resolve: (value: T) => void, reject: (error: Error) => void) => void) {
-        fn(this.resolve, this.reject);
+        fn((value) => this.resolve(value), error => this.reject(error));
+        // fn(this.resolve, this.reject);
     }
 
     static of<T>(fn: (resolve: (value: T) => void, reject: (error: Error) => void) => void) {
-        return new Future(fn);
+        return new Future<T>(fn);
     }
 
     flatMap<V>(fn: (value: T) => Future<V>): Future<V> {
-        return new Future((resolve1, reject1) => {
-            this._resolve = (value) => {
+        return new Future((resolve, reject) => {
+            this.resolve = (value) => {
                 fn(value)
-                    .match({
-                        resolve(value1) { resolve1(value1) },
-                        reject(error) { reject1(error) }
-                    })
+                    .match({ resolve, reject })
             }
-            this._reject = reject1;
+            this.reject = reject;
         })
     }
 
     map<V>(fn: (value: T) => V): Future<V> {
-        return new Future((resolve1, reject1) => {
-            this._resolve = (value) => {
-                resolve1(fn(value))
+        return new Future((resolve, reject) => {
+            this.resolve = (value) => {
+                resolve(fn(value))
             }
-            this._reject = reject1;
+            this.reject = reject;
         })
     }
 
@@ -79,8 +71,8 @@ class Future<T> {
         resolve: ((value: T) => void),
         reject: ((error: Error) => void)
     }) {
-        this._resolve = resolve;
-        this._reject = reject;
+        this.resolve = resolve;
+        this.reject = reject;
     }
 }
 
@@ -95,22 +87,23 @@ Optional
 
 Future
     .of<number>((resolve, reject) => {
-        setImmediate(() => {
-            resolve(5);
-        })
+        // setImmediate(() => {
+        //     resolve(5);
+        // })
         setTimeout(() => {
-            // resolve(5);
+            resolve(5);
             // reject(new Error('oops'))
-        }, 0);
+        }, 1000);
     })
     .map(it => it + 1)
-    .flatMap(it => {
+
+    .flatMap<string>(it => {
         return Future.of((resolve, reject) => {
             setImmediate(() => {
                 // reject(new Error('what'));
             })
             setTimeout(() => {
-                // resolve(it + 2)
+                // resolve(`${it} wwowowow`)
                 reject(new Error('oops'))
             }, 1000);
         })
