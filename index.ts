@@ -1,5 +1,4 @@
-
-class Optional<T>  {
+class Optional<T> {
     constructor(public value: T | undefined) {
     }
 
@@ -16,9 +15,9 @@ class Optional<T>  {
 
     map<V>(fn: (value: T) => V): Optional<V> {
         if (!this.value) {
-            return new Optional<V>(this.value)
+            return new Optional<V>(this.value);
         }
-        return new Optional(fn(this.value))
+        return new Optional(fn(this.value));
     }
 
     match({ some, none }: {
@@ -36,8 +35,10 @@ class Optional<T>  {
 
 
 class Future<T> {
-    resolve: (value: T) => void = (value) => { };
-    reject: (error: Error) => void = (error) => { };
+    resolve: (value: T) => void = (_) => {
+    };
+    reject: (error: Error) => void = (_) => {
+    };
 
     constructor(public fn: (resolve: (value: T) => void, reject: (error: Error) => void) => void) {
         fn((value) => this.resolve(value), error => this.reject(error));
@@ -46,36 +47,36 @@ class Future<T> {
     static resolve<T>(value: T) {
         return new Future<T>((resolve, _) => {
             setImmediate(() => {
-                resolve(value)
-            })
-        })
+                resolve(value);
+            });
+        });
     }
 
     static reject<T>(error: Error) {
         return new Future<T>((_, reject) => {
             setImmediate(() => {
-                reject(error)
-            })
-        })
+                reject(error);
+            });
+        });
     }
 
     flatMap<V>(fn: (value: T) => Future<V>): Future<V> {
         return new Future((resolve, reject) => {
             this.resolve = (value) => {
                 fn(value)
-                    .match({ resolve, reject })
-            }
+                    .match({ resolve, reject });
+            };
             this.reject = reject;
-        })
+        });
     }
 
     map<V>(fn: (value: T) => V): Future<V> {
         return new Future((resolve, reject) => {
             this.resolve = (value) => {
-                resolve(fn(value))
-            }
+                resolve(fn(value));
+            };
             this.reject = reject;
-        })
+        });
     }
 
     match({ resolve, reject }: {
@@ -90,28 +91,33 @@ class Future<T> {
 Optional
     .of({ x: 5, y: 7 })
     .map(it => it.x)
-    .flatMap(x => new Optional<string>('aa'))
+    .flatMap(it => new Optional<string>(`${it} aaaa`))
     .match({
-        some(x) { console.log('this is x', x) },
-        none() { console.log('nothing'); }
-    })
+        some(x) {
+            console.log('this is x', x);
+        },
+        none() {
+            console.log('nothing');
+        }
+    });
 
 Future
     .resolve(5)
     .map(it => {
-        return it + 1
+        return it + 1;
     })
     .flatMap<string>(it => {
         return new Future((resolve, reject) => {
             setTimeout(() => {
-                resolve(`${it} wwowowow`)
+                resolve(`${it} bbb`);
             }, 1000);
-        })
+        });
     })
     .match({
-        resolve(value) { console.log('resolve', value) },
-        reject(error) { console.log('reject', error) }
-    })
-
-
-// console.log(c);
+        resolve(value) {
+            console.log('resolve', value);
+        },
+        reject(error) {
+            console.log('reject', error);
+        }
+    });

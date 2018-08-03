@@ -33,8 +33,10 @@ var Future = /** @class */ (function () {
     function Future(fn) {
         var _this = this;
         this.fn = fn;
-        this.resolve = function (value) { };
-        this.reject = function (error) { };
+        this.resolve = function (_) {
+        };
+        this.reject = function (_) {
+        };
         fn(function (value) { return _this.resolve(value); }, function (error) { return _this.reject(error); });
     }
     Future.resolve = function (value) {
@@ -80,10 +82,14 @@ var Future = /** @class */ (function () {
 Optional
     .of({ x: 5, y: 7 })
     .map(function (it) { return it.x; })
-    .flatMap(function (x) { return new Optional('aa'); })
+    .flatMap(function (it) { return new Optional(it + " aaaa"); })
     .match({
-    some: function (x) { console.log('this is x', x); },
-    none: function () { console.log('nothing'); }
+    some: function (x) {
+        console.log('this is x', x);
+    },
+    none: function () {
+        console.log('nothing');
+    }
 });
 Future
     .resolve(5)
@@ -93,12 +99,15 @@ Future
     .flatMap(function (it) {
     return new Future(function (resolve, reject) {
         setTimeout(function () {
-            resolve(it + " wwowowow");
+            resolve(it + " bbb");
         }, 1000);
     });
 })
     .match({
-    resolve: function (value) { console.log('resolve', value); },
-    reject: function (error) { console.log('reject', error); }
+    resolve: function (value) {
+        console.log('resolve', value);
+    },
+    reject: function (error) {
+        console.log('reject', error);
+    }
 });
-// console.log(c);
