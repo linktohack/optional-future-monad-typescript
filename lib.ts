@@ -20,6 +20,10 @@ export class Optional<T> {
         return new Optional(fn(this.value));
     }
 
+    k<K extends keyof T>(key: K) {
+        return this.map<T[K]>(value => value[key]);
+    }
+
     match({ some, none }: {
         some?: ((value: T) => void),
         none?: (() => void)

@@ -19,6 +19,9 @@ var Optional = /** @class */ (function () {
         }
         return new Optional(fn(this.value));
     };
+    Optional.prototype.k = function (key) {
+        return this.map(function (value) { return value[key]; });
+    };
     Optional.prototype.match = function (_a) {
         var some = _a.some, none = _a.none;
         if (!this.value && none) {

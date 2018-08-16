@@ -3,8 +3,9 @@ import { Future, Optional } from './lib';
 
 Optional
     .of({ x: 5, y: { z: { t: 10 } } })
-    .map(it => it.y)
-    .map(it => it.z)
+    .k('y')
+    .k('z')
+    .k('t')
     .flatMap(it => new Optional(`${JSON.stringify(it)} aaaa`))
     .match({
         some(x) {
@@ -14,6 +15,13 @@ Optional
             console.log('nothing');
         }
     });
+
+console.log('val', Optional
+    .of(1)
+    .flatMap(it => Optional
+        .of(2)
+        .map(it2 => it + it2))
+    .value);
 
 Future
     .resolve(5)
