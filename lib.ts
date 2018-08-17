@@ -1,4 +1,21 @@
-export class Optional<T> {
+export interface M<T> {
+    map<V>(fn: (value: T) => V): M<V>
+
+    flatMap<V>(fn: (value: T) => M<V>): M<V>
+}
+
+export function doM<T>(generator: () => IterableIterator<M<T>>) {
+    const gen1 = generator();
+    return function fn(value?: T): M<T> {
+        const result = gen1.next(value);
+        if (result.done) {
+            return result.value;
+        }
+        return result.value.flatMap(fn);
+    }();
+}
+
+export class Optional<T> implements M<T> {
     constructor(public value: T | undefined) {
     }
 
@@ -37,7 +54,7 @@ export class Optional<T> {
     }
 }
 
-export class Future<T> {
+export class Future<T> implements M<T> {
     resolve: (value: T) => void = (_) => {
     };
     reject: (error: Error) => void = (_) => {
